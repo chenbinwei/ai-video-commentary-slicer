@@ -23,3 +23,7 @@ coverage/
 # IDE
 .vscode/
 .idea/
+
+# Local media assets
+videos/
+outputs/
