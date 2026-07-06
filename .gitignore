@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+.better_story/
+runs/
+tmp_demo_input.mp4
+
+*.mp4
+*.mkv
+*.mov
+*.wav

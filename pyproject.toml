@@ -1,0 +1,23 @@
+[project]
+name = "better-story"
+version = "0.1.0"
+description = "Demo pipeline for turning long videos into short narrated recap edits."
+requires-python = ">=3.10"
+dependencies = [
+  "openai>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+better-story = "better_story.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
