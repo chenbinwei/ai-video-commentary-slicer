@@ -1,4 +1,4 @@
-﻿.env
+.env
 node_modules/
 
 # macOS
@@ -41,3 +41,9 @@ __pycache__/
 
 # Local context packet
 context.json
+batch.local.json
+
+
+# Local voice clone reference audio
+assets/voice_refs/*
+!assets/voice_refs/.gitkeep

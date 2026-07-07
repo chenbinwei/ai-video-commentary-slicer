@@ -1,0 +1,10 @@
+[
+  {
+    "input": "videos/input.mp4",
+    "context": "context.json",
+    "output_dir": "outputs/job_001",
+    "target_duration": 120,
+    "tts_mode": "fish",
+    "require_llm": true
+  }
+]
