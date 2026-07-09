@@ -7,9 +7,13 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 
-from video_slicer.api.project_service import create_project, update_project_context
-from video_slicer.api.schemas import HealthResponse
-from video_slicer.api.schemas import CreateProjectRequest, UpdateProjectContextRequest
+from video_slicer.api.project_service import create_project, create_version, update_project_context
+from video_slicer.api.schemas import (
+    CreateProjectRequest,
+    CreateVersionRequest,
+    HealthResponse,
+    UpdateProjectContextRequest,
+)
 from video_slicer.context_packet import frontend_context_schema
 from video_slicer.project_store import LocalProjectStore
 
@@ -57,5 +61,28 @@ def create_app(
             ).to_dict()
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Project not found") from exc
+
+    @app.post("/api/projects/{project_id}/versions")
+    def post_version(project_id: str, request: CreateVersionRequest) -> dict[str, Any]:
+        try:
+            return create_version(app.state.store, project_id=project_id, request=request).to_dict()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Project not found") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/projects/{project_id}/versions")
+    def list_versions(project_id: str) -> list[dict[str, Any]]:
+        try:
+            return [version.to_dict() for version in app.state.store.list_versions(project_id)]
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Project not found") from exc
+
+    @app.get("/api/projects/{project_id}/versions/{version_id}")
+    def get_version(project_id: str, version_id: str) -> dict[str, Any]:
+        try:
+            return app.state.store.get_version(project_id, version_id).to_dict()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Version not found") from exc
 
     return app

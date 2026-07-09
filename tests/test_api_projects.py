@@ -75,6 +75,56 @@ class ApiProjectTest(unittest.TestCase):
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.json()["detail"], "Project not found")
 
+    def test_create_list_and_get_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = LocalProjectStore(Path(tmp))
+            project = store.create_project("videos/input.mp4", source_duration_seconds=300.0)
+            client = TestClient(create_app(store=store))
+
+            created = client.post(
+                f"/api/projects/{project.project_id}/versions",
+                json={
+                    "target_duration_seconds": 90.0,
+                    "audio_mode": "pure_commentary",
+                    "voice_clone_id": "fish_voice_demo",
+                    "bgm_path": "assets/bgm/demo.mp3",
+                    "voiceover_speed": 0.92,
+                    "voiceover_volume": 1.0,
+                    "bgm_volume": 0.18,
+                    "subtitle_language": "zh",
+                    "aspect_ratio": "original",
+                    "variant_goal": "90s_pure_commentary",
+                },
+            )
+
+            self.assertEqual(created.status_code, 200)
+            version = created.json()
+            self.assertTrue(version["version_id"].startswith("version_"))
+            self.assertEqual(version["settings"]["target_duration_seconds"], 90.0)
+            self.assertEqual(version["settings"]["voice_clone_id"], "fish_voice_demo")
+
+            listed = client.get(f"/api/projects/{project.project_id}/versions")
+            self.assertEqual(listed.status_code, 200)
+            self.assertEqual(len(listed.json()), 1)
+
+            fetched = client.get(f"/api/projects/{project.project_id}/versions/{version['version_id']}")
+            self.assertEqual(fetched.status_code, 200)
+            self.assertEqual(fetched.json()["variant_goal"], "90s_pure_commentary")
+
+    def test_create_version_rejects_duration_not_shorter_than_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = LocalProjectStore(Path(tmp))
+            project = store.create_project("videos/input.mp4", source_duration_seconds=100.0)
+            client = TestClient(create_app(store=store))
+
+            response = client.post(
+                f"/api/projects/{project.project_id}/versions",
+                json={"target_duration_seconds": 100.0},
+            )
+
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("shorter than source", response.json()["detail"])
+
 
 if __name__ == "__main__":
     unittest.main()
