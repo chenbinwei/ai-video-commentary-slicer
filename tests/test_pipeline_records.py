@@ -19,6 +19,7 @@ def make_args(**overrides):
         "project_root": "",
         "project_id": "",
         "version_id": "",
+        "job_id": "",
         "input": "videos/input.mp4",
         "target_duration": 120.0,
         "tts_mode": "fish",
@@ -123,6 +124,31 @@ class PipelineRecordsTest(unittest.TestCase):
             self.assertEqual(job.status, JobStatus.FAILED)
             self.assertIn("bad duration", job.error_message)
 
+    def test_begin_session_reuses_existing_job_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = LocalProjectStore(Path(tmp))
+            project = store.create_project("videos/input.mp4", source_duration_seconds=300.0, project_id="project_demo")
+            version = store.create_version(
+                project.project_id,
+                settings_from_pipeline_args(make_args()),
+                version_id="version_demo",
+            )
+            job = store.create_job(project.project_id, version.version_id, job_id="job_demo")
+
+            session = begin_pipeline_record_session(
+                make_args(
+                    record_project=True,
+                    project_root=tmp,
+                    project_id=project.project_id,
+                    version_id=version.version_id,
+                    job_id=job.job_id,
+                ),
+                video_duration=300.0,
+            )
+
+            self.assertEqual(session.job_id, "job_demo")
+            self.assertEqual(store.get_job(project.project_id, "job_demo").status, JobStatus.RUNNING)
+
 
 
 class PipelineParserRecordArgsTest(unittest.TestCase):
@@ -142,6 +168,12 @@ class PipelineParserRecordArgsTest(unittest.TestCase):
         self.assertEqual(args.project_root, "projects.local")
         self.assertEqual(args.project_id, "project_demo")
         self.assertEqual(args.version_id, "version_demo")
+
+    def test_parser_accepts_job_id(self):
+        parser = build_parser()
+        args = parser.parse_args(["--record-project", "--job-id", "job_demo"])
+
+        self.assertEqual(args.job_id, "job_demo")
 
 if __name__ == "__main__":
     unittest.main()

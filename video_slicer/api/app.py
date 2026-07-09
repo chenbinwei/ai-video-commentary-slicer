@@ -5,11 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 
+from video_slicer.api.job_runner import PipelineJobRunner
 from video_slicer.api.project_service import create_project, create_version, update_project_context
 from video_slicer.api.schemas import (
     CreateProjectRequest,
+    CreateRenderJobRequest,
     CreateVersionRequest,
     HealthResponse,
     UpdateProjectContextRequest,
@@ -26,7 +28,7 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="Video Slicer Local API", version="0.1.0")
     app.state.store = store or LocalProjectStore(project_root or "projects.local")
-    app.state.job_runner = job_runner
+    app.state.job_runner = job_runner or PipelineJobRunner(store=app.state.store)
 
     @app.get("/api/health", response_model=HealthResponse)
     def health() -> HealthResponse:
@@ -84,5 +86,39 @@ def create_app(
             return app.state.store.get_version(project_id, version_id).to_dict()
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Version not found") from exc
+
+    @app.post("/api/projects/{project_id}/versions/{version_id}/render")
+    def post_render_job(
+        project_id: str,
+        version_id: str,
+        request: CreateRenderJobRequest,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        try:
+            job = app.state.store.create_job(project_id, version_id)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Version not found") from exc
+        background_tasks.add_task(
+            app.state.job_runner.run_job,
+            project_id=project_id,
+            version_id=version_id,
+            job_id=job.job_id,
+            request=request,
+        )
+        return job.to_dict()
+
+    @app.get("/api/projects/{project_id}/jobs")
+    def list_jobs(project_id: str, version_id: str | None = None) -> list[dict[str, Any]]:
+        try:
+            return [job.to_dict() for job in app.state.store.list_jobs(project_id, version_id=version_id)]
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Project not found") from exc
+
+    @app.get("/api/projects/{project_id}/jobs/{job_id}")
+    def get_job(project_id: str, job_id: str) -> dict[str, Any]:
+        try:
+            return app.state.store.get_job(project_id, job_id).to_dict()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Job not found") from exc
 
     return app

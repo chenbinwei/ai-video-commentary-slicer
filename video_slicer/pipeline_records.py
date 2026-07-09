@@ -90,6 +90,7 @@ def begin_pipeline_record_session(args: Namespace, *, video_duration: float) -> 
     store = LocalProjectStore(Path(getattr(args, "project_root", "") or "projects.local"))
     project_id = str(getattr(args, "project_id", "") or "")
     version_id = str(getattr(args, "version_id", "") or "")
+    job_id = str(getattr(args, "job_id", "") or "")
 
     if project_id:
         try:
@@ -119,11 +120,22 @@ def begin_pipeline_record_session(args: Namespace, *, video_duration: float) -> 
     else:
         version = store.create_version(project_id=project.project_id, settings=settings)
 
-    job = store.create_job(
-        project_id=project.project_id,
-        version_id=version.version_id,
-        initial_stage=JobStage.EXTRACT_AUDIO,
-    )
+    if job_id:
+        try:
+            job = store.get_job(project.project_id, job_id)
+        except FileNotFoundError:
+            job = store.create_job(
+                project_id=project.project_id,
+                version_id=version.version_id,
+                job_id=job_id,
+                initial_stage=JobStage.EXTRACT_AUDIO,
+            )
+    else:
+        job = store.create_job(
+            project_id=project.project_id,
+            version_id=version.version_id,
+            initial_stage=JobStage.EXTRACT_AUDIO,
+        )
     store.update_job_status(
         project_id=project.project_id,
         job_id=job.job_id,

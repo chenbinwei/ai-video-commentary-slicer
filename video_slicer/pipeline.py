@@ -678,6 +678,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--project-root", default=os.environ.get("PROJECT_ROOT", "projects.local"), help="Local project data root used with --record-project.")
     parser.add_argument("--project-id", default="", help="Existing or desired project id used with --record-project.")
     parser.add_argument("--version-id", default="", help="Existing or desired version id used with --record-project.")
+    parser.add_argument("--job-id", default="", help="Existing or desired job id used with --record-project.")
     parser.add_argument("--context", default=DEFAULT_CONTEXT_PATH, help="Optional context packet JSON path. Use this to provide title, people, background, and story constraints.")
     parser.add_argument("--target-duration", type=float, default=120.0, help="Target voiceover/video duration in seconds.")
     parser.add_argument("--duration-tolerance", type=float, default=float(os.environ.get("DURATION_TOLERANCE", "3.0")), help="Allowed final duration drift in seconds.")
