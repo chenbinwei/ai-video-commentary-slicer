@@ -30,6 +30,7 @@
 | 本地项目数据读写 | `video_slicer/project_store.py` |
 | 旧 CLI 到项目记录的适配 | `video_slicer/pipeline_records.py` |
 | 本地 HTTP API、请求 schema、任务调度 | `video_slicer/api/` |
+| 本地前端页面、样式、浏览器交互 | `frontend/` |
 | 大模型服务 | `llm_providers/` |
 | TTS 服务 | `tts_providers/` |
 | 声音资产本地注册 | `video_slicer/voice_registry.py` |
@@ -92,6 +93,7 @@
 | `video_slicer/api/app.py` | `tests/test_api_app.py` |
 | `video_slicer/api/project_service.py` | `tests/test_api_projects.py` |
 | `video_slicer/api/job_runner.py` | `tests/test_api_jobs.py` |
+| `frontend/index.html` / `frontend/styles.css` / `frontend/app.js` | `tests/test_frontend_static.py` |
 | `video_slicer/alignment.py` | `tests/test_alignment.py` |
 | `video_slicer/rendering.py` | `tests/test_rendering.py` |
 | `video_slicer/script_generation.py` | `tests/test_script_generation.py` |
@@ -115,7 +117,17 @@ python -m unittest tests.test_api_app tests.test_api_projects tests.test_api_job
 python -m compileall video_slicer tests scripts
 ```
 
-后续新增测试文件后，把它加入验证命令。
+后续新增测试文件后，把它加入验证命令。当前前端相关验证命令是：
+
+```powershell
+python -m unittest tests.test_frontend_static
+```
+
+前端规则：
+
+- 前端只能通过 `/api/...` 和后端交互；不能在浏览器代码里拼接或修改 `projects.local/` 文件路径。
+- 前端表单字段必须使用通用命名，不能写入某个具体视频的人名、剧情或专用规则。
+- 如果新增目标时长、声音、BGM、字幕、画幅相关设置，必须同时更新 `CreateVersionRequest`、前端控件和对应测试。
 
 ## 6. 质量报告规则
 
@@ -237,6 +249,6 @@ Provider 层不应该负责：
 4. 拆 `rendering.py`，集中管理 FFmpeg。
 5. 拆 `script_generation.py`，集中管理文案生成和审稿。
 6. 接本地 FastAPI。
-7. 再做前端。
+7. 继续完善本地前端。
 
 不要在画面匹配还不稳定时急着做复杂前端。前端应该接稳定的项目/版本/任务接口，而不是直接包住一个混乱脚本。

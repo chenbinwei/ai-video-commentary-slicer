@@ -16,6 +16,7 @@
 | --- | --- | --- |
 | `video_slicer/` | 核心业务包：pipeline 编排、上下文包、对齐、渲染、质量报告、项目记录 | 提交 |
 | `video_slicer/api/` | 本地 FastAPI 后端：项目、上下文、版本、渲染任务和状态查询 | 提交 |
+| `frontend/` | 本地浏览器工作台：项目、上下文、版本、渲染和任务状态页面 | 提交 |
 | `llm_providers/` | 大模型 provider 适配层，例如 DashScope、OCool | 提交 |
 | `tts_providers/` | TTS provider 适配层，例如 Fish Audio、OCool | 提交 |
 | `scripts/` | 命令行入口和诊断工具 | 提交 |
@@ -58,6 +59,7 @@
 | 本地项目数据读写 | `video_slicer/project_store.py` |
 | CLI 参数到项目记录的过渡适配 | `video_slicer/pipeline_records.py` |
 | 本地 API 路由、请求 schema、后台渲染任务调度 | `video_slicer/api/` |
+| 本地浏览器工作台页面、样式和交互 | `frontend/` |
 | 本地声音 ID 注册表 | `video_slicer/voice_registry.py` |
 | 大模型 API 请求细节 | `llm_providers/` |
 | TTS API 请求和声音克隆细节 | `tts_providers/` |
@@ -82,6 +84,7 @@
 - 新的文案策略、审稿规则、口播润色限制、禁用词校验：放到 `video_slicer/script_generation.py`。
 - 新的质量指标或风险提示：放到 `video_slicer/quality_report.py`。
 - 新的本地 HTTP 接口、请求/响应 schema、后台任务调度：放到 `video_slicer/api/`。
+- 新的浏览器工作台页面、静态 CSS、静态 JS：放到 `frontend/`。前端只能调用 `video_slicer/api/` 暴露的 HTTP 接口，不能直接读写 `projects.local/`。
 - 新的大模型服务：新增到 `llm_providers/`。
 - 新的 TTS 服务：新增到 `tts_providers/`。
 - 新的用户可配置参数：优先放到 `VersionSettings`，再由 CLI 或未来前端传入。

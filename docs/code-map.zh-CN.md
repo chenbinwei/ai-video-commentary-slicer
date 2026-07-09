@@ -33,6 +33,11 @@
   -> video_slicer.api
     -> 项目 / 上下文 / 版本 / 渲染任务 / 状态查询
 
+本地浏览器工作台
+  -> frontend/index.html / frontend/styles.css / frontend/app.js
+  -> video_slicer.api
+  -> LocalProjectStore / pipeline
+
 外部服务
   -> llm_providers
   -> tts_providers
@@ -41,7 +46,7 @@
   -> video_slicer.quality_report
 ```
 
-目前还没有真正的前端；本地 FastAPI 后端已进入 MVP 阶段。`video_slicer.pipeline` 仍然偏大，但 alignment、rendering、script_generation 已经拆出，后续重构重点应该是继续逐步拆成可复用阶段，而不是一次性推翻。
+目前本地浏览器工作台已进入 MVP 阶段，由 FastAPI 直接托管静态前端。`video_slicer.pipeline` 仍然偏大，但 alignment、rendering、script_generation 已经拆出，后续重构重点应该是继续逐步拆成可复用阶段，而不是一次性推翻。
 
 相关文档：
 
@@ -57,6 +62,7 @@
 | `1.py` | 兼容旧入口，最终调用 `video_slicer.pipeline` | 是 |
 | `video_slicer/` | 项目核心 Python 包 | 是 |
 | `video_slicer/api/` | 本地 FastAPI 后端：项目、上下文、版本、渲染任务和状态查询 | 是 |
+| `frontend/` | 本地浏览器工作台：项目、上下文、版本、渲染和任务状态页面 | 是 |
 | `llm_providers/` | 大模型 provider 适配层 | 是 |
 | `tts_providers/` | TTS provider 适配层 | 是 |
 | `scripts/` | 命令行工具入口 | 是 |
@@ -227,6 +233,39 @@
 - 新增文案策略、审稿规则、口播润色限制、禁用词校验，优先放到 `video_slicer/script_generation.py`。
 - `pipeline.py` 只负责决定何时生成、审稿、润色和写出脚本，不直接拼大段 prompt。
 - 第三方模型请求细节仍然放在 `llm_providers/`。
+
+## 本地前端工作台
+
+### `frontend/index.html`
+
+职责：
+
+- 提供项目创建、上下文编辑、版本配置、渲染启动和任务状态区域。
+- 只包含静态结构，不写业务决策。
+- 控件 ID 要和 `frontend/app.js` 保持一致。
+
+### `frontend/styles.css`
+
+职责：
+
+- 提供本地工具型界面样式。
+- 使用稳定的 grid 和 pane 布局，避免动态内容挤压表单。
+- 不放营销页 hero、装饰性背景、嵌套卡片。
+
+### `frontend/app.js`
+
+职责：
+
+- 调用 `/api/...` 接口。
+- 维护 selected project、selected version、active job 三类浏览器状态。
+- 在创建版本前校验目标时长小于原视频时长。
+- 启动渲染后轮询 job 状态，并在 `done`、`failed`、`cancelled` 时停止轮询。
+
+边界：
+
+- 前端不直接调用 FFmpeg、LLM、TTS 或本地 JSON 存储。
+- 前端不包含任何具体影视片段的人名、剧情或梗概。
+- 如果需要新增可配置项，先更新 `CreateVersionRequest` 或 context packet，再更新前端字段。
 
 ## 5. 本地 API 模块
 

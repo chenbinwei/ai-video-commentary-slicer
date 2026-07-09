@@ -33,7 +33,7 @@
 - `video_slicer/voice_registry.py`：本地 Fish 声音 ID 注册表工具
 - `tts_providers/`：TTS provider，当前有 Fish Audio 和 OCool fallback
 - `scripts/run_pipeline.py`：完整流程入口
-- `scripts/run_api.py`：本地 FastAPI 后端入口，供未来前端调用
+- `scripts/run_api.py`：本地 FastAPI 后端入口，供本地前端调用
 - `scripts/preview_tts.py`：单独试听 TTS，不跑完整视频
 - `scripts/check_dashscope.py`：检查 DashScope 官方 SDK 是否能正常生成文本
 - `scripts/create_fish_voice.py`：创建 Fish 声音模型并登记到本地注册表
@@ -47,6 +47,7 @@
 
 - `1.py`：兼容旧命令的入口
 - `video_slicer/`：后端核心流程模块
+- `frontend/`：本地浏览器工作台
 - `tts_providers/`：TTS provider
 - `scripts/`：可复用命令行入口
 - `requirements.txt`：Python 依赖
@@ -260,6 +261,16 @@ http://127.0.0.1:8000
 ```
 
 第一版 API 负责项目、上下文包、版本、渲染任务和任务状态查询；视频切片仍然复用现有 `video_slicer.pipeline`，不会从 API 层重写剪辑逻辑。
+
+## 启动本地前端
+
+前端由 FastAPI 直接托管。启动本地后端后，浏览器打开：
+
+```text
+http://127.0.0.1:8000/
+```
+
+这个页面可以创建项目、编辑上下文包、创建版本、启动渲染并查看任务状态。第一版使用本地视频路径；视频文件仍然放在不受 Git 管理的 `videos/` 或本机其他目录。
 
 ## 输出文件
 
