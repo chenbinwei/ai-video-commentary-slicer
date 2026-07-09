@@ -180,6 +180,7 @@ class ProjectRecord:
     transcript_path: str = ""
     source_duration_seconds: float | None = None
     user_context: UserContext = field(default_factory=UserContext)
+    context_packet: dict[str, Any] = field(default_factory=dict)
     analysis: dict[str, Any] = field(default_factory=dict)
     data_region: str = "local"
     privacy_flags: dict[str, bool] = field(default_factory=default_privacy_flags)
@@ -200,6 +201,7 @@ class ProjectRecord:
             "transcript_path": self.transcript_path,
             "source_duration_seconds": self.source_duration_seconds,
             "user_context": self.user_context.to_dict(),
+            "context_packet": self.context_packet,
             "analysis": self.analysis,
             "data_region": self.data_region,
             "privacy_flags": dict(self.privacy_flags),
@@ -220,6 +222,7 @@ class ProjectRecord:
             transcript_path=str(data.get("transcript_path", "")),
             source_duration_seconds=float(duration) if duration is not None else None,
             user_context=UserContext.from_dict(data.get("user_context")),
+            context_packet=dict(data.get("context_packet", {})),
             analysis=dict(data.get("analysis", {})),
             data_region=str(data.get("data_region", "local")),
             privacy_flags={**default_privacy_flags(), **dict(data.get("privacy_flags", {}))},

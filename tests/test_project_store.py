@@ -92,6 +92,22 @@ class LocalProjectStoreTest(unittest.TestCase):
             self.assertEqual(saved_job.export_paths["final_video"], "projects.local/project_demo/exports/final.mp4")
             self.assertEqual(saved_job.duration_seconds, 119.8)
 
+    def test_project_context_packet_survives_reload(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = LocalProjectStore(Path(tmp))
+            project = store.create_project("videos/demo.mp4", source_duration_seconds=300.0)
+            project.context_packet = {
+                "title": "测试项目",
+                "correct_synopsis": "主角进入房间，冲突开始。",
+                "story_focus": ["压迫感", "人物关系"],
+            }
+            store.save_project(project)
+
+            reloaded = LocalProjectStore(Path(tmp)).get_project(project.project_id)
+
+            self.assertEqual(reloaded.context_packet["title"], "测试项目")
+            self.assertEqual(reloaded.context_packet["story_focus"], ["压迫感", "人物关系"])
+
 
 if __name__ == "__main__":
     unittest.main()
